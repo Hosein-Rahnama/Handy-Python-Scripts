@@ -9,5 +9,6 @@ This is a simple python script that uses the `pytube` package to download vidoes
 
 # TODO
 
-- [ ] Write a function for creating `file_name`.
-- [ ] Change `download_playlist` and `download_video` such that they only take URLs as input.
+- [x] Change `download_playlist` such that it only takes URLs as input.
+- [ ] Write a function for creating proper `file_name`.
+- [ ] Improve `download_video` such that it can download highest quality videos with non-progressive format.
