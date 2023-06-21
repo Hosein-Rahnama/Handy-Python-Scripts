@@ -2,21 +2,24 @@ import os
 import subprocess
 from typing import List, Optional
 from pytube import YouTube, Playlist, StreamQuery
+from pytube.cli import on_progress
 from settings import CWD, DOWNLOAD_PATH, MAX_RETRIES, DIGITS, BYTE_TO_MB
 
 
-def download_playlist(videos_URLs: List[str],
+def download_playlist(url_list: List[str],
                       file_extension: str, 
                       file_resolution: str, 
                       video_number_start: Optional[int] = None,
                       video_number_end: Optional[int] = None,
                       video_number_digits: int = DIGITS) -> None:
     video_list = []
-    for URL in videos_URLs:
-        if ("watch" in URL):
-            video_list.append(YouTube(URL))
-        elif ("playlist" in URL):
-            video_list.extend(Playlist(URL).videos)
+    for url in url_list:
+        if ("watch" in url):
+            video_list.append(YouTube(url, on_progress_callback = on_progress))
+        elif ("playlist" in url):
+            playlist_urls = Playlist(url).video_urls
+            playlist_videos = [YouTube(video_url, on_progress_callback = on_progress) for video_url in playlist_urls]
+            video_list.extend(playlist_videos)
     if (video_number_start == None):
         video_number_start = 1
     if (video_number_end == None):
@@ -24,6 +27,7 @@ def download_playlist(videos_URLs: List[str],
     for video_number in range(video_number_start - 1, video_number_end):
         video = video_list[video_number]
         download_video(video, file_extension, file_resolution, video_number + 1, video_number_digits)
+    print('\n\n')
 
 
 def download_video(video: YouTube, 
@@ -46,8 +50,8 @@ def download_video(video: YouTube,
             return
         resolution_index = resolution_index - 1
         file_resolution = all_resolutions[resolution_index]
-        print(f'**Error** - \'{file_name}\'' + '\n' + f'Requested resolution was not available. Resolution was downgraded to {file_resolution}.')
-    print(f'**Error** - \'{file_name}\'' + '\n' + f'File was not downloaded.')
+        print('\n' + f'Error - \'{file_name}\'' + '\n' + f'Requested resolution was not available. Resolution was downgraded to {file_resolution}.')
+    print('\n' + f'Error - \'{file_name}\'' + '\n' + f'File was not downloaded.')
     return
 
 
@@ -61,7 +65,7 @@ def download_stream_progressive(streams_progressive: StreamQuery,
     if (stream != None):
         video_size = round(stream.filesize * BYTE_TO_MB, 2)
         video_name = file_name_prefix + file_name + '.' + file_extension
-        print(f"Downloading '{file_name}' with {file_resolution} resolution. Media size is {video_size} MB.")
+        print('\n\n' + f"Downloading '{file_name}' with {file_resolution} resolution. Media size is {video_size} MB.")
         stream.download(output_path = DOWNLOAD_PATH, filename = video_name, max_retries = max_retries)
         return True
     else:
@@ -79,15 +83,15 @@ def download_stream_adaptive(streams_adaptive: StreamQuery,
     if (stream_video != None):
         video_size = round(stream_video.filesize * BYTE_TO_MB, 2)
         video_name = file_name_prefix + 'video-' + file_name + '.' + file_extension
-        print(f"Downloading video of '{file_name}' with {file_resolution} resolution. Video size is {video_size} MB.")
+        print('\n\n' + f"Downloading video of '{file_name}' with {file_resolution} resolution. Video size is {video_size} MB.")
         stream_video.download(output_path = DOWNLOAD_PATH, filename = video_name , max_retries = max_retries)
         audio_size = round(stream_audio.filesize * BYTE_TO_MB, 2)
         audio_extension = stream_audio.mime_type.split('/')[1]
         audio_name = file_name_prefix + 'audio-' + file_name + '.' + audio_extension
-        print(f"Downloading audio of '{file_name}' with {stream_audio.abr} average bitrate. Audio size is {audio_size} MB.")
+        print('\n'+ f"Downloading audio of '{file_name}' with {stream_audio.abr} average bitrate. Audio size is {audio_size} MB.")
         stream_audio.download(output_path = DOWNLOAD_PATH, filename = audio_name, max_retries = max_retries)
         output_name = file_name_prefix + file_name + '.' + file_extension
-        print('Merging video and audio.')
+        print('\n' + 'Merging video and audio.')
         merge_audio_vdieo(video_name, audio_name, output_name)
         return True
     else:
