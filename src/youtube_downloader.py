@@ -3,7 +3,7 @@ import subprocess
 from typing import List, Optional
 from pytube import YouTube, Playlist, StreamQuery
 from pytube.cli import on_progress
-from settings import CWD, DOWNLOAD_PATH, MAX_RETRIES, DIGITS, BYTE_TO_MB
+from .settings import CWD, DOWNLOAD_PATH, MAX_RETRIES, DIGITS, BYTE_TO_MB
 
 
 def download_playlist(url_list: List[str],
@@ -65,7 +65,7 @@ def create_file_name(video: YouTube,
     if numbering_downloads:
         file_name_prefix = str(video_number).zfill(numbering_format) + '-'
     file_name = video.title
-    replacement = [' ', ':', '?', '!', '/', '|', ',', ';', '(', ')', '"']
+    replacement = [' ', ':', '?', '!', '/', '|', ',', ';', '(', ')', '"', '*']
     for character in replacement:
         if (character in file_name):
             file_name = file_name.replace(character, '-')
@@ -109,13 +109,13 @@ def download_stream_adaptive(streams_adaptive: StreamQuery,
         stream_audio.download(output_path = DOWNLOAD_PATH, filename = audio_name, max_retries = max_retries)
         output_name = file_name + '.' + file_extension
         print('\n' + 'Merging video and audio.')
-        merge_audio_vdieo(video_name, audio_name, output_name)
+        merge_audio_video(video_name, audio_name, output_name)
         return True
     else:
         return False
 
 
-def merge_audio_vdieo(video_name: str,
+def merge_audio_video(video_name: str,
                       audio_name: str,
                       output_name: str) -> None:
     os.chdir(DOWNLOAD_PATH)

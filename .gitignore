@@ -1,3 +1,4 @@
 # Git ignores the following files and folders. 
 
 __pycache__
+downloads

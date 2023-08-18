@@ -2,7 +2,7 @@ import os
 
 # path variables
 CWD = os.getcwd()
-DOWNLOAD_PATH = os.path.join(CWD, 'download')
+DOWNLOAD_PATH = os.path.join(CWD, 'downloads')
 
 # download request setting
 MAX_RETRIES = 3
